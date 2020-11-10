@@ -59,6 +59,7 @@ public class PlantVisualiser : MonoBehaviour
 
                     GameObject treeSegement = Instantiate(Branch);
                     treeSegement.transform.SetParent(GeneratedTree.transform);
+                    treeSegement.name = "branch: "+i;
                     treeSegement.GetComponent<LineRenderer>().SetPosition(0,initalPosition);
                     treeSegement.GetComponent<LineRenderer>().SetPosition(1,transform.position);
                 break; 
