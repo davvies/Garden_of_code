@@ -28,6 +28,12 @@ public class InitGivenPlant : MonoBehaviour
             plant.parcelableRules.Add(ruleTwo[1],ruleTwo.Substring(4).Replace(")",""));
         }
 
+        if(transform.Find("Rule3")){
+            string ruleThree = transform.Find("Rule3").gameObject.GetComponent<TextMeshProUGUI>().text;
+            plant.parcelableRules.Add(ruleThree[1],ruleThree.Substring(4).Replace(")",""));
+        }
+
+
         //since the rules are limited to 2, 
         plant.axiom = axiom;
         plant.maxIterations = maxGenerations;
