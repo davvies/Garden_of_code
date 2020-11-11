@@ -9,13 +9,12 @@ public class TransformInfo {
 }
 public class PlantVisualiser : MonoBehaviour
 {
-        ///USE ENUM FOR PARACBLE RULE CHARACTER
 
-    [SerializeField] GameObject Branch; 
+    [SerializeField] GameObject Branch = default; 
 
     [SerializeField] GameObject GeneratedTree = default;
 
-    [SerializeField] GameObject LeafPrefab;
+    [SerializeField] GameObject LeafPrefab = default;
     public char axiom { get; set; }
 
     public string plantName { get; set; }
@@ -30,15 +29,29 @@ public class PlantVisualiser : MonoBehaviour
 
     string currentString = "";
 
-    // Start is called before the first frame update
+    public bool onInstanceGenerateListener; 
+
+    Transform startingPos;
+
     void Start()
     {
         ViewDataInput();
-        transform.position = GameObject.Find("Tree").transform.position;
+        transform.position = GeneratedTree.transform.position;
+        startingPos = GeneratedTree.transform;
         transformInfos = new Stack<TransformInfo>();
-       Generate(); 
+      
+
+       onInstanceGenerateListener = true;
     }
 
+    void Update()
+    {
+        if(onInstanceGenerateListener){
+            Debug.Log("Generating");
+            Generate();
+            onInstanceGenerateListener = false;
+        }    
+    }
     void Generate(){
         currentString = axiom.ToString();
         StringBuilder sb = new StringBuilder();
@@ -48,7 +61,7 @@ public class PlantVisualiser : MonoBehaviour
             sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
          }
          currentString = sb.ToString();
-         sb = new StringBuilder();
+         sb.Clear();
         }
 
         for(int i = 0; i < currentString.Length; i++){
@@ -57,8 +70,8 @@ public class PlantVisualiser : MonoBehaviour
                     Vector3 initalPosition = transform.position;
                     transform.Translate(Vector3.up);
 
-                    GameObject treeSegement = Instantiate(Branch);
-                    treeSegement.transform.SetParent(GeneratedTree.transform);
+                    GameObject treeSegement = Instantiate(Branch, GeneratedTree.transform);
+    
                     treeSegement.name = "branch: "+i;
                     treeSegement.GetComponent<LineRenderer>().SetPosition(0,initalPosition);
                     treeSegement.GetComponent<LineRenderer>().SetPosition(1,transform.position);
@@ -90,7 +103,23 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
     
-    //DEBUG METHOD
+    public void ClearAll(){ //garbage collection
+        Debug.LogWarning("**TREE IS BEING CLEARED**");
+
+        parcelableRules.Clear();
+        plantName = string.Empty;
+        axiom = ' ';
+        transform.position = GeneratedTree.transform.position;
+        transform.rotation = startingPos.transform.rotation;
+
+        if(GeneratedTree.transform.childCount==0) return;
+
+        foreach(Transform child in GeneratedTree.transform){
+            Destroy(child.gameObject);
+        }
+        
+    }
+    //AUX DEBUG METHOD
     void ViewDataInput(){
         string TEMPDELETE = "";
          foreach(var c in parcelableRules){

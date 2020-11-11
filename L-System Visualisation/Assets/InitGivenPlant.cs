@@ -19,7 +19,6 @@ public class InitGivenPlant : MonoBehaviour
 
         char axiom = transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text[gameObject.transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text.Length-1];
         string ruleOne = transform.Find("Rule").gameObject.GetComponent<TextMeshProUGUI>().text;
-    //    string ruleTwo = transform.Find("Rule2").gameObject.GetComponent<TextMeshProUGUI>().text;
         int maxGenerations = int.Parse((Regex.Replace(transform.Find("MaxGenerations").GetComponent<TextMeshProUGUI>().text,@"[^\d]", "")));
         float theta = float.Parse(((Regex.Match(transform.Find("Theta").GetComponent<TextMeshProUGUI>().text, @"\d+.+\d").Value)));
         
@@ -33,16 +32,14 @@ public class InitGivenPlant : MonoBehaviour
             plant.parcelableRules.Add(ruleThree[1],ruleThree.Substring(4).Replace(")",""));
         }
 
-
-        //since the rules are limited to 2, 
         plant.axiom = axiom;
         plant.maxIterations = maxGenerations;
         plant.thetaRotationAngle = theta;
         plant.parcelableRules.Add(ruleOne[1],ruleOne.Substring(4).Replace(")",""));
-       // if(!ruleTwo.Equals("")) plant.parcelableRules.Add(ruleTwo[1],ruleTwo.Substring(4).Replace(")",""));
 
         plant.plantName = gameObject.name;
         menuCanvas.gameObject.SetActive(false);
+        plant.onInstanceGenerateListener = true;
     }
 
 }
