@@ -15,33 +15,34 @@ public class PlantVisualiser : MonoBehaviour
     [SerializeField] GameObject GeneratedTree = default;
 
     [SerializeField] GameObject LeafPrefab = default;
-    public char axiom { get; set; }
 
-    public string plantName { get; set; }
+    public char axiom;
+
+    public string plantName;
     
     public Dictionary<char,string> parcelableRules = new Dictionary<char, string>();
 
-    public int maxIterations { get; set; }
+    public int maxIterations;
 
-    public float thetaRotationAngle { get; set; } 
+    public float thetaRotationAngle;
 
     Stack<TransformInfo> transformInfos;
 
     string currentString = "";
 
-    public bool onInstanceGenerateListener; 
+    public bool onInstanceGenerateListener ; 
 
     Transform startingPos;
 
+    public int currentIteration;
+
     void Start()
     {
-        ViewDataInput();
         transform.position = GeneratedTree.transform.position;
         startingPos = GeneratedTree.transform;
         transformInfos = new Stack<TransformInfo>();
-      
-
-       onInstanceGenerateListener = true;
+        currentIteration = maxIterations;
+        onInstanceGenerateListener=true;
     }
 
     void Update()
@@ -53,10 +54,13 @@ public class PlantVisualiser : MonoBehaviour
         }    
     }
     void Generate(){
+
+        if(GeneratedTree.transform.childCount!=0) ClearTreeAndPosition();
+
         currentString = axiom.ToString();
         StringBuilder sb = new StringBuilder();
 
-        for(int i = 0; i < maxIterations; i++){
+        for(int i = 0; i < currentIteration; i++){
         foreach(char c in currentString){
             sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
          }
@@ -103,6 +107,17 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
     
+    IEnumerator MultithreadDelayGen(){
+        yield return new WaitForEndOfFrame();
+        currentIteration = maxIterations;
+        Generate();
+    }
+
+    void OnEnable()
+    {
+        StartCoroutine(MultithreadDelayGen());  
+    }
+
     public void ClearAll(){ //garbage collection
         Debug.LogWarning("**TREE IS BEING CLEARED**");
 
@@ -111,13 +126,22 @@ public class PlantVisualiser : MonoBehaviour
         axiom = ' ';
         transform.position = GeneratedTree.transform.position;
         transform.rotation = startingPos.transform.rotation;
-
+        maxIterations = 0;
         if(GeneratedTree.transform.childCount==0) return;
 
         foreach(Transform child in GeneratedTree.transform){
             Destroy(child.gameObject);
         }
         
+    }
+
+    public void ClearTreeAndPosition(){
+        transform.position = GeneratedTree.transform.position;
+        transform.rotation = startingPos.transform.rotation;
+
+        foreach(Transform child in GeneratedTree.transform){
+            Destroy(child.gameObject);
+        }
     }
     //AUX DEBUG METHOD
     void ViewDataInput(){
