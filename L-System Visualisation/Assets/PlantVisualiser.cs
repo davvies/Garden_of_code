@@ -16,25 +16,25 @@ public class PlantVisualiser : MonoBehaviour
 
     [SerializeField] GameObject LeafPrefab = default;
 
-    public char axiom;
+    public char axiom { get; set; }
 
-    public string plantName;
+    public string plantName { get; set; }
     
     public Dictionary<char,string> parcelableRules = new Dictionary<char, string>();
 
-    public int maxIterations;
+    public int maxIterations { get; set; }
 
-    public float thetaRotationAngle;
+    public float thetaRotationAngle { get; set; }
 
     Stack<TransformInfo> transformInfos;
 
     string currentString = "";
 
-    public bool onInstanceGenerateListener ; 
+    public bool onInstanceGenerateListener { get; set; } 
 
     Transform startingPos;
 
-    public int currentIteration;
+    public int currentIteration { get; set; }
 
     void Start()
     {
@@ -48,7 +48,6 @@ public class PlantVisualiser : MonoBehaviour
     void Update()
     {
         if(onInstanceGenerateListener){
-            Debug.Log("Generating");
             Generate();
             onInstanceGenerateListener = false;
         }    

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class LSystemHUDInteraction : MonoBehaviour
@@ -19,9 +20,11 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     [SerializeField] Material customBlack = default; 
     
-     [SerializeField] Material customGreen = default; 
+    [SerializeField] Material customGreen = default; 
 
-     [SerializeField] Material customBrown = default;
+    [SerializeField] Material customBrown = default;
+
+    [SerializeField] Slider thetaSlider = default;
 
     void Start() => DisplayStats();
 
@@ -29,7 +32,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         StartCoroutine(WaitAFrameToUpdateName());
         }//plant name is static information, render it when information is parsed
     
-    IEnumerator WaitAFrameToUpdateName() { //by waiting for the nex
+    IEnumerator WaitAFrameToUpdateName() {
         yield return new WaitWhile(() => plantName.text == string.Empty);
         DisplayStats();
         
@@ -39,6 +42,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         plantName.text = "plant preset: "+currentPlant.plantName;
         generation.text = "Generation: "+currentPlant.currentIteration;
         theta.text = "Theta: "+currentPlant.thetaRotationAngle+"°";
+        thetaSlider.value = currentPlant.thetaRotationAngle;
     }
 
     public void OnClickBackToMenu() {
@@ -56,7 +60,6 @@ public class LSystemHUDInteraction : MonoBehaviour
     }
 
     public void OnClickDecreaseGenerations(){
-        Debug.Log("clicked");
         if(currentPlant.currentIteration > 1){
             currentPlant.currentIteration -= 1; 
             DisplayStats();
@@ -76,6 +79,14 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     public void OnClickChangeTreeToBrown(){
         prefabLR.GetComponent<LineRenderer>().material = customBrown;
+        currentPlant.onInstanceGenerateListener = true;
+    }
+
+    public void OnDragChangeTheta()
+    {
+        float updatedSlideTheta = (float)Mathf.Round(thetaSlider.value * 10f) / 10;
+        currentPlant.thetaRotationAngle = updatedSlideTheta;
+        theta.text = "Theta: "+updatedSlideTheta+ "°";
         currentPlant.onInstanceGenerateListener = true;
     }
 }
