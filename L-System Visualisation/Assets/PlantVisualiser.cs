@@ -7,6 +7,7 @@ public class TransformInfo {
     public Vector3 position; 
     public Quaternion rotation;
 }
+
 public class PlantVisualiser : MonoBehaviour
 {
 
@@ -36,12 +37,15 @@ public class PlantVisualiser : MonoBehaviour
 
     public int currentIteration { get; set; }
 
+    public bool hasLeaves;
+
     void Start()
     {
         transform.position = GeneratedTree.transform.position;
         startingPos = GeneratedTree.transform;
         transformInfos = new Stack<TransformInfo>();
         currentIteration = maxIterations;
+        hasLeaves = false;
         onInstanceGenerateListener=true;
     }
 
@@ -92,7 +96,18 @@ public class PlantVisualiser : MonoBehaviour
                 transformInfos.Push(new TransformInfo(){position = transform.position, rotation = transform.rotation});
                 break;
                 case ']':
-                TransformInfo ti = transformInfos.Pop();
+                    if (hasLeaves)
+                    {
+                        Vector3 iP = transform.position;
+                        transform.Translate(new Vector3(0, 0.9f, 0));
+
+                        GameObject leaf = Instantiate(LeafPrefab, GeneratedTree.transform);
+
+                        leaf.name = "leaf: " + i;
+                        leaf.GetComponent<LineRenderer>().SetPosition(0, iP);
+                        leaf.GetComponent<LineRenderer>().SetPosition(1, transform.position);
+                    }
+                TransformInfo ti = transformInfos.Pop();    
                 transform.position = ti.position;
                 transform.rotation = ti.rotation;
                 break;
@@ -109,6 +124,7 @@ public class PlantVisualiser : MonoBehaviour
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame();
         currentIteration = maxIterations;
+        hasLeaves = false;
         Generate();
     }
 
@@ -144,7 +160,7 @@ public class PlantVisualiser : MonoBehaviour
     }
     //AUX DEBUG METHOD
     void ViewDataInput(){
-        string TEMPDELETE = "";
+        string TEMPDELETE = string.Empty;
          foreach(var c in parcelableRules){
             TEMPDELETE += "Key: "+c.Key+" | "+"Value: "+c.Value;
          }

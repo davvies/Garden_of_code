@@ -26,6 +26,14 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     [SerializeField] Slider thetaSlider = default;
 
+    [SerializeField] RawImage leafChecker = default;
+
+    [SerializeField] Texture IMGleafChecked = default;
+
+    [SerializeField] Texture IMGleafUnchecked = default;
+
+    const float startLRWidth = 0.3f; 
+
     void Start() => DisplayStats();
 
     void OnEnable() { 
@@ -43,6 +51,9 @@ public class LSystemHUDInteraction : MonoBehaviour
         generation.text = "Generation: "+currentPlant.currentIteration;
         theta.text = "Theta: "+currentPlant.thetaRotationAngle+"°";
         thetaSlider.value = currentPlant.thetaRotationAngle;
+        prefabLR.GetComponent<LineRenderer>().startWidth = startLRWidth;
+        prefabLR.GetComponent<LineRenderer>().endWidth = startLRWidth;
+        leafChecker.texture = IMGleafUnchecked;
     }
 
     public void OnClickBackToMenu() {
@@ -87,6 +98,30 @@ public class LSystemHUDInteraction : MonoBehaviour
         float updatedSlideTheta = (float)Mathf.Round(thetaSlider.value * 10f) / 10;
         currentPlant.thetaRotationAngle = updatedSlideTheta;
         theta.text = "Theta: "+updatedSlideTheta+ "°";
+        currentPlant.onInstanceGenerateListener = true;
+    }
+
+    public void OnClickIncreaseBranchThickness() {
+        //prefabLR.GetComponent<LineRenderer>().startWidth = prefabLR.GetComponent<LineRenderer>().startWidth 
+        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) >= 0.9f) return;
+        Debug.Log("Running");
+        prefabLR.GetComponent<LineRenderer>().startWidth += 0.3f;
+        prefabLR.GetComponent<LineRenderer>().endWidth += 0.3f;
+        currentPlant.onInstanceGenerateListener = true; 
+    }
+
+    public void OnClickDecreaseBranchThickness()
+    {
+        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) <= 0.3f) return;
+        prefabLR.GetComponent<LineRenderer>().startWidth -= 0.3f;
+        prefabLR.GetComponent<LineRenderer>().endWidth -= 0.3f;
+        currentPlant.onInstanceGenerateListener = true;
+    }
+
+    public void OnClickCheckUncheckLeaves()
+    {
+        currentPlant.hasLeaves = !currentPlant.hasLeaves;
+        leafChecker.texture = currentPlant.hasLeaves == true ? IMGleafChecked : IMGleafUnchecked;
         currentPlant.onInstanceGenerateListener = true;
     }
 }
