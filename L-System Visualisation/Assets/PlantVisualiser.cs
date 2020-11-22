@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
-public class TransformInfo {
+public class TransformInfo { //make this just a stack of transforms instead
     public Vector3 position; 
     public Quaternion rotation;
 }
+
 
 public class PlantVisualiser : MonoBehaviour
 {
@@ -39,12 +41,17 @@ public class PlantVisualiser : MonoBehaviour
 
     public bool hasLeaves;
 
+    public bool isStochastic = false;
+
+    string startingF;
+
     void Start()
     {
         transform.position = GeneratedTree.transform.position;
         startingPos = GeneratedTree.transform;
         transformInfos = new Stack<TransformInfo>();
         currentIteration = maxIterations;
+        startingF = parcelableRules['F'];
         hasLeaves = false;
         onInstanceGenerateListener=true;
     }
@@ -63,13 +70,20 @@ public class PlantVisualiser : MonoBehaviour
         currentString = axiom.ToString();
         StringBuilder sb = new StringBuilder();
 
-        for(int i = 0; i < currentIteration; i++){
-        foreach(char c in currentString){
-            sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
-         }
-         currentString = sb.ToString();
-         sb.Clear();
-        }
+            for (int i = 0; i < currentIteration; i++)
+            {
+
+            if (isStochastic) ApplyStochasticProbablity();
+
+                foreach (char c in currentString)
+                {
+                    sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
+                }
+
+                currentString = sb.ToString();
+                sb.Clear();
+            }
+        
 
         for(int i = 0; i < currentString.Length; i++){
             switch(currentString[i]){
@@ -121,10 +135,41 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
     
+    void ApplyStochasticProbablity()
+    {
+        float rNum = Random.Range(0f, 1f);
+
+        if (rNum > 0.5f)
+        {
+            parcelableRules['F'] = startingF;
+        } else {
+            string s = string.Empty;
+            foreach(char c in startingF)
+            {
+                if (c == '+')
+                {
+                    s += '-';
+                }
+                else if (c == '-')
+                {
+                    s += '+';
+                }
+                else
+                {
+                    s += c;
+                }
+            }
+            parcelableRules['F'] = s;
+        }
+
+    }
+
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame();
         currentIteration = maxIterations;
         hasLeaves = false;
+        startingF = parcelableRules['F'];
+        isStochastic = false;
         Generate();
     }
 
@@ -151,6 +196,8 @@ public class PlantVisualiser : MonoBehaviour
     }
 
     public void ClearTreeAndPosition(){
+        
+     
         transform.position = GeneratedTree.transform.position;
         transform.rotation = startingPos.transform.rotation;
 
@@ -158,6 +205,7 @@ public class PlantVisualiser : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
+
     //AUX DEBUG METHOD
     void ViewDataInput(){
         string TEMPDELETE = string.Empty;

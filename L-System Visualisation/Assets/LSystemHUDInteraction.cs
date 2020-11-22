@@ -43,7 +43,10 @@ public class LSystemHUDInteraction : MonoBehaviour
     IEnumerator WaitAFrameToUpdateName() {
         yield return new WaitWhile(() => plantName.text == string.Empty);
         DisplayStats();
-        
+        prefabLR.GetComponent<LineRenderer>().startWidth = startLRWidth;
+        prefabLR.GetComponent<LineRenderer>().endWidth = startLRWidth;
+        leafChecker.texture = IMGleafUnchecked;
+
     }
 
     void DisplayStats(){
@@ -51,9 +54,6 @@ public class LSystemHUDInteraction : MonoBehaviour
         generation.text = "Generation: "+currentPlant.currentIteration;
         theta.text = "Theta: "+currentPlant.thetaRotationAngle+"°";
         thetaSlider.value = currentPlant.thetaRotationAngle;
-        prefabLR.GetComponent<LineRenderer>().startWidth = startLRWidth;
-        prefabLR.GetComponent<LineRenderer>().endWidth = startLRWidth;
-        leafChecker.texture = IMGleafUnchecked;
     }
 
     public void OnClickBackToMenu() {
@@ -124,4 +124,12 @@ public class LSystemHUDInteraction : MonoBehaviour
         leafChecker.texture = currentPlant.hasLeaves == true ? IMGleafChecked : IMGleafUnchecked;
         currentPlant.onInstanceGenerateListener = true;
     }
+
+    public void OnClickMakePlantStochastic()
+    {
+        currentPlant.isStochastic = true;
+        currentPlant.onInstanceGenerateListener = true;
+        //dont forget to generate
+    }
+    //nts quality seetings set to medium
 }
