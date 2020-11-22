@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -8,7 +9,6 @@ public class TransformInfo { //make this just a stack of transforms instead
     public Vector3 position; 
     public Quaternion rotation;
 }
-
 
 public class PlantVisualiser : MonoBehaviour
 {
@@ -43,7 +43,15 @@ public class PlantVisualiser : MonoBehaviour
 
     public bool isStochastic = false;
 
-    string startingF;
+    StochasticProbablity sp;
+
+    //create a method called 'create new generation string' in this method have the first part of generate, SAVE the generated string so when you click leaves thickness etc and stuff the tree doesn't completely re-generate
+
+    //TODO add a schotastic listener (to stop the tree generating each time you tick leaves etc) ✓
+    //TODO **important** remove the top bit of generate code and only generate when you need to (not when selecting ANGLE or leaves)
+    //TODO currently shoctastic only works with strings that start with F and include an F loop through each string if it contains + or minus opposite it maybe make a class that holds a temp and old and have methods that set the new generated one ✓
+    //TODO ask in meeting if 50/50 probablity is good enough for the extra schotactic marks
+    //TODO just use a transform stack instead of transform info
 
     void Start()
     {
@@ -51,7 +59,7 @@ public class PlantVisualiser : MonoBehaviour
         startingPos = GeneratedTree.transform;
         transformInfos = new Stack<TransformInfo>();
         currentIteration = maxIterations;
-        startingF = parcelableRules['F'];
+        sp = new StochasticProbablity(parcelableRules);
         hasLeaves = false;
         onInstanceGenerateListener=true;
     }
@@ -63,6 +71,7 @@ public class PlantVisualiser : MonoBehaviour
             onInstanceGenerateListener = false;
         }    
     }
+
     void Generate(){
 
         if(GeneratedTree.transform.childCount!=0) ClearTreeAndPosition();
@@ -72,18 +81,23 @@ public class PlantVisualiser : MonoBehaviour
 
             for (int i = 0; i < currentIteration; i++)
             {
-
-            if (isStochastic) ApplyStochasticProbablity();
-
                 foreach (char c in currentString)
                 {
-                    sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
-                }
+                     if (isStochastic)
+                     {
+                       sb.Append(ApplyStochasticProbablity(c));
+                     }
+                      else
+                      {
+                         sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
+                      }
+                   }
 
                 currentString = sb.ToString();
                 sb.Clear();
             }
-        
+
+        if (isStochastic) isStochastic = false;
 
         for(int i = 0; i < currentString.Length; i++){
             switch(currentString[i]){
@@ -135,51 +149,40 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
     
-    void ApplyStochasticProbablity()
+    string ApplyStochasticProbablity(char c)
     {
         float rNum = Random.Range(0f, 1f);
-
+        Dictionary<char, string> working;  
         if (rNum > 0.5f)
         {
-            parcelableRules['F'] = startingF;
+            working = sp.GetOrignalRuleSet;
+                
         } else {
-            string s = string.Empty;
-            foreach(char c in startingF)
-            {
-                if (c == '+')
-                {
-                    s += '-';
-                }
-                else if (c == '-')
-                {
-                    s += '+';
-                }
-                else
-                {
-                    s += c;
-                }
-            }
-            parcelableRules['F'] = s;
-        }
 
+            working = sp.GetInvertedOperatorRuleSet;
+
+        }
+        
+        //UPDATE PARCEABLE RULES 
+        return working.ContainsKey(c) ? working[c] : c.ToString();
     }
 
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame();
         currentIteration = maxIterations;
         hasLeaves = false;
-        startingF = parcelableRules['F'];
+        sp.SetOrignalProduction(parcelableRules);
         isStochastic = false;
         Generate();
     }
 
     void OnEnable()
     {
+        Debug.Log("on enable called");
         StartCoroutine(MultithreadDelayGen());  
     }
 
     public void ClearAll(){ //garbage collection
-        Debug.LogWarning("**TREE IS BEING CLEARED**");
 
         parcelableRules.Clear();
         plantName = string.Empty;
@@ -206,13 +209,62 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
 
-    //AUX DEBUG METHOD
-    void ViewDataInput(){
-        string TEMPDELETE = string.Empty;
-         foreach(var c in parcelableRules){
-            TEMPDELETE += "Key: "+c.Key+" | "+"Value: "+c.Value;
-         }
-        Debug.Log("| Plant name: "+plantName +" |  "+ axiom+" | "+TEMPDELETE+" | Max Iterations: "+maxIterations+" | Theta: "+thetaRotationAngle+" degrees");
-    }
+    public class StochasticProbablity
+    {
+        Dictionary<char, string> originalProduction;
+        Dictionary<char, string> modifiedProduction = new Dictionary<char, string>();
 
+        public StochasticProbablity(Dictionary<char,string> initalProductionSet)
+        {
+            originalProduction = initalProductionSet;
+            foreach(KeyValuePair<char, string> production in originalProduction)
+            {
+                string temp = production.Value;
+                if (production.Value.Contains('-') || production.Value.Contains('+'))
+                {
+                    temp = string.Empty; 
+                    foreach(char c in production.Value)
+                    {
+                        if (c == '+') temp += '-';
+                        else if (c == '-') temp += '+';
+                        else temp += c;
+                    }
+                }
+
+                modifiedProduction.Add(production.Key, temp);
+            }
+        }
+
+        public Dictionary<char, string> GetOrignalRuleSet => originalProduction;
+
+        public Dictionary<char, string> GetInvertedOperatorRuleSet => modifiedProduction;
+
+        public void SetOrignalProduction(Dictionary<char,string> newProd) {
+            originalProduction = newProd;
+            UpdateInverseProd();
+        }
+
+        void UpdateInverseProd()
+        {
+            modifiedProduction.Clear();
+            foreach (KeyValuePair<char, string> production in originalProduction)
+            {
+                string temp = production.Value;
+                if (production.Value.Contains('-') || production.Value.Contains('+'))
+                {
+                    temp = string.Empty;
+                    foreach (char c in production.Value)
+                    {
+                        if (c == '+') temp += '-';
+                        else if (c == '-') temp += '+';
+                        else temp += c;
+                    }
+                }
+
+                modifiedProduction.Add(production.Key, temp);
+            }
+        }
+
+
+    }
 }

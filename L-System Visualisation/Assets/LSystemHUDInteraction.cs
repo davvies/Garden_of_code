@@ -45,6 +45,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         DisplayStats();
         prefabLR.GetComponent<LineRenderer>().startWidth = startLRWidth;
         prefabLR.GetComponent<LineRenderer>().endWidth = startLRWidth;
+        prefabLR.GetComponent<LineRenderer>().material = customBlack;
         leafChecker.texture = IMGleafUnchecked;
 
     }
