@@ -35,6 +35,8 @@ public class PlantVisualiser : MonoBehaviour
 
     public bool onInstanceGenerateListener { get; set; } 
 
+    public bool onInstanceRecalcuateTreeStructure { get; set; }
+
     Transform startingPos;
 
     public int currentIteration { get; set; }
@@ -45,12 +47,12 @@ public class PlantVisualiser : MonoBehaviour
 
     StochasticProbablity sp;
 
-    //create a method called 'create new generation string' in this method have the first part of generate, SAVE the generated string so when you click leaves thickness etc and stuff the tree doesn't completely re-generate
+    public string preloadedInstructions;
 
     //TODO add a schotastic listener (to stop the tree generating each time you tick leaves etc) ✓
-    //TODO **important** remove the top bit of generate code and only generate when you need to (not when selecting ANGLE or leaves)
+    //TODO **important** remove the top bit of generate code and only generate when you need to (not when selecting ANGLE or leaves) ✓
     //TODO currently shoctastic only works with strings that start with F and include an F loop through each string if it contains + or minus opposite it maybe make a class that holds a temp and old and have methods that set the new generated one ✓
-    //TODO ask in meeting if 50/50 probablity is good enough for the extra schotactic marks
+    //TODO ask in meeting if 50/50 probablity is good enough for the extra schotactic marks and the fact that some rules dictate unmutateable 
     //TODO just use a transform stack instead of transform info
 
     void Start()
@@ -61,11 +63,17 @@ public class PlantVisualiser : MonoBehaviour
         currentIteration = maxIterations;
         sp = new StochasticProbablity(parcelableRules);
         hasLeaves = false;
+        CacheGenerationalInstructions();
         onInstanceGenerateListener=true;
     }
 
     void Update()
     {
+        if (onInstanceRecalcuateTreeStructure)
+        {
+            CacheGenerationalInstructions();
+            onInstanceRecalcuateTreeStructure = false;
+        }
         if(onInstanceGenerateListener){
             Generate();
             onInstanceGenerateListener = false;
@@ -76,31 +84,8 @@ public class PlantVisualiser : MonoBehaviour
 
         if(GeneratedTree.transform.childCount!=0) ClearTreeAndPosition();
 
-        currentString = axiom.ToString();
-        StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < currentIteration; i++)
-            {
-                foreach (char c in currentString)
-                {
-                     if (isStochastic)
-                     {
-                       sb.Append(ApplyStochasticProbablity(c));
-                     }
-                      else
-                      {
-                         sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
-                      }
-                   }
-
-                currentString = sb.ToString();
-                sb.Clear();
-            }
-
-        if (isStochastic) isStochastic = false;
-
-        for(int i = 0; i < currentString.Length; i++){
-            switch(currentString[i]){
+        for(int i = 0; i < preloadedInstructions.Length; i++){
+            switch(preloadedInstructions[i]){
                 case 'F':
                     Vector3 initalPosition = transform.position;
                     transform.Translate(Vector3.up);
@@ -167,18 +152,48 @@ public class PlantVisualiser : MonoBehaviour
         return working.ContainsKey(c) ? working[c] : c.ToString();
     }
 
+    void CacheGenerationalInstructions()
+    {
+        currentString = axiom.ToString();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < currentIteration; i++)
+        {
+            foreach (char c in currentString)
+            {
+                if (isStochastic)
+                {
+                    sb.Append(ApplyStochasticProbablity(c));
+                }
+                else
+                {
+                    sb.Append(parcelableRules.ContainsKey(c) ? parcelableRules[c] : c.ToString());
+                }
+            }
+
+            currentString = sb.ToString();
+            sb.Clear();
+        }
+
+        preloadedInstructions = currentString;
+        if (isStochastic)
+        {
+            isStochastic = false;
+        }
+    }
+
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame();
         currentIteration = maxIterations;
         hasLeaves = false;
         sp.SetOrignalProduction(parcelableRules);
         isStochastic = false;
+        CacheGenerationalInstructions();
         Generate();
     }
 
     void OnEnable()
     {
-        Debug.Log("on enable called");
         StartCoroutine(MultithreadDelayGen());  
     }
 

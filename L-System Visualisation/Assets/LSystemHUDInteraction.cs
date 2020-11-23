@@ -65,7 +65,8 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     public void OnClickIncreaseGenerations(){
         if(currentPlant.currentIteration < currentPlant.maxIterations){
-            currentPlant.currentIteration += 1; 
+            currentPlant.currentIteration += 1;
+            currentPlant.onInstanceRecalcuateTreeStructure = true;
             currentPlant.onInstanceGenerateListener = true;
             DisplayStats();
         }
@@ -73,9 +74,10 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     public void OnClickDecreaseGenerations(){
         if(currentPlant.currentIteration > 1){
-            currentPlant.currentIteration -= 1; 
-            DisplayStats();
+            currentPlant.currentIteration -= 1;
+            currentPlant.onInstanceRecalcuateTreeStructure = true;
             currentPlant.onInstanceGenerateListener = true;
+            DisplayStats();
         }
     }
 
@@ -105,7 +107,7 @@ public class LSystemHUDInteraction : MonoBehaviour
     public void OnClickIncreaseBranchThickness() {
         //prefabLR.GetComponent<LineRenderer>().startWidth = prefabLR.GetComponent<LineRenderer>().startWidth 
         if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) >= 0.9f) return;
-        Debug.Log("Running");
+       
         prefabLR.GetComponent<LineRenderer>().startWidth += 0.3f;
         prefabLR.GetComponent<LineRenderer>().endWidth += 0.3f;
         currentPlant.onInstanceGenerateListener = true; 
@@ -129,6 +131,7 @@ public class LSystemHUDInteraction : MonoBehaviour
     public void OnClickMakePlantStochastic()
     {
         currentPlant.isStochastic = true;
+        currentPlant.onInstanceRecalcuateTreeStructure = true; 
         currentPlant.onInstanceGenerateListener = true;
         //dont forget to generate
     }
