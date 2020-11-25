@@ -21,37 +21,27 @@ public class InitGivenPlant : MonoBehaviour
 
         plantCanvas.gameObject.SetActive(true); //selection canvas must be deactivated.
 
-        char axiom = transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text[gameObject.transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text.Length-1];
-        string ruleOne = transform.Find("Rule").gameObject.GetComponent<TextMeshProUGUI>().text;
-        int maxGenerations = int.Parse((Regex.Replace(transform.Find("MaxGenerations").GetComponent<TextMeshProUGUI>().text,@"[^\d]", "")));
-        float theta = float.Parse(((Regex.Match(transform.Find("Theta").GetComponent<TextMeshProUGUI>().text, @"\d+.+\d").Value)));
+        char axiom = transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text[gameObject.transform.Find("Axiom").GetComponent<TextMeshProUGUI>().text.Length-1]; //parce single char for axiom
+        int maxGenerations = int.Parse((Regex.Replace(transform.Find("MaxGenerations").GetComponent<TextMeshProUGUI>().text,@"[^\d]", ""))); //parce max generations as a number rather than full text
+        float theta = float.Parse(((Regex.Match(transform.Find("Theta").GetComponent<TextMeshProUGUI>().text, @"\d+.+\d").Value))); //this regex allows a simply fraction to be left behind
         
-       /* foreach(Transform t in transform)
+        foreach(Transform plantProperty in transform) //O(n) linear search is not a problem as we assume that only basic fields such as axiom exist
         {
-            if (t.CompareTag("Rule"))
+            if (plantProperty.CompareTag("Rule")) //this design allows any amount of rules to be added, assuming the rules are marked as such with a tag
             {
-
+                string rule = plantProperty.GetComponent<TextMeshProUGUI>().text; //taking a reference to the full GUI display of the rule..
+                plant.parcelableRules.Add(rule[1], rule.Substring(4).Replace(")", "")); //we pass the character for that rule, along with the rest of the rule
             }
-        }*/
-
-        if(transform.Find("Rule2")){
-            string ruleTwo = transform.Find("Rule2").gameObject.GetComponent<TextMeshProUGUI>().text;
-            plant.parcelableRules.Add(ruleTwo[1],ruleTwo.Substring(4).Replace(")",""));
         }
 
-        if(transform.Find("Rule3")){
-            string ruleThree = transform.Find("Rule3").gameObject.GetComponent<TextMeshProUGUI>().text;
-            plant.parcelableRules.Add(ruleThree[1],ruleThree.Substring(4).Replace(")",""));
-        }
-
+        //plant properties set
         plant.axiom = axiom;
         plant.maxIterations = maxGenerations;
         plant.thetaRotationAngle = theta;
-        plant.parcelableRules.Add(ruleOne[1],ruleOne.Substring(4).Replace(")",""));
-
         plant.plantName = gameObject.name;
-        menuCanvas.gameObject.SetActive(false);
-        plant.onInstanceGenerateListener = true;
+
+        menuCanvas.gameObject.SetActive(false); //disable the menu completely to stop background rendering (increased performance)
+        plant.onInstanceGenerateListener = true; //enough arguments are used to create a tree
     }
 
 }
