@@ -5,11 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-public class TransformInfo { //make this just a stack of transforms instead
-    public Vector3 position; 
-    public Quaternion rotation;
-}
-
 public class PlantVisualiser : MonoBehaviour
 {
 
@@ -29,7 +24,7 @@ public class PlantVisualiser : MonoBehaviour
 
     public float thetaRotationAngle { get; set; }
 
-    Stack<TransformInfo> transformInfos;
+    Stack<TransformData> transformInfos;
 
     string currentString = "";
 
@@ -41,6 +36,8 @@ public class PlantVisualiser : MonoBehaviour
 
     public int currentIteration { get; set; }
 
+    public int branchLengthScalar { get; set; }
+
     public bool hasLeaves;
 
     public bool isStochastic = false;
@@ -49,18 +46,17 @@ public class PlantVisualiser : MonoBehaviour
 
     public string preloadedInstructions;
 
-    //TODO add a schotastic listener (to stop the tree generating each time you tick leaves etc) ✓
-    //TODO **important** remove the top bit of generate code and only generate when you need to (not when selecting ANGLE or leaves) ✓
-    //TODO currently shoctastic only works with strings that start with F and include an F loop through each string if it contains + or minus opposite it maybe make a class that holds a temp and old and have methods that set the new generated one ✓
-    //TODO ask in meeting if 50/50 probablity is good enough for the extra schotactic marks and the fact that some rules dictate unmutateable 
-    //TODO just use a transform stack instead of transform info
+    public bool updateExisitngAngles;
 
     void Start()
     {
         transform.position = GeneratedTree.transform.position;
         startingPos = GeneratedTree.transform;
-        transformInfos = new Stack<TransformInfo>();
+        transformInfos = new Stack<TransformData>();
+   
         currentIteration = maxIterations;
+        branchLengthScalar = 1;
+        updateExisitngAngles = false; 
         sp = new StochasticProbablity(parcelableRules);
         hasLeaves = false;
         CacheGenerationalInstructions();
@@ -77,60 +73,61 @@ public class PlantVisualiser : MonoBehaviour
         if(onInstanceGenerateListener){
             Generate();
             onInstanceGenerateListener = false;
-        }    
+        }
+        if (updateExisitngAngles)
+        {
+            UpdateExisitngAngles();
+            updateExisitngAngles = false;
+        }
     }
 
     void Generate(){
-
-        if(GeneratedTree.transform.childCount!=0) ClearTreeAndPosition();
-
+        int counter = 0;
+        int counter2 = 0;
+        if (GeneratedTree.transform.childCount!=0) ClearTreeAndPosition();
         for(int i = 0; i < preloadedInstructions.Length; i++){
             switch(preloadedInstructions[i]){
                 case 'F':
                     Vector3 initalPosition = transform.position;
-                    transform.Translate(Vector3.up);
+                    transform.Translate(Vector3.up * branchLengthScalar);
 
                     GameObject treeSegement = Instantiate(Branch, GeneratedTree.transform);
     
-                    treeSegement.name = "branch: "+i;
+                    treeSegement.name = "branch: "+counter;
+                    counter += 1;
                     treeSegement.GetComponent<LineRenderer>().SetPosition(0,initalPosition);
                     treeSegement.GetComponent<LineRenderer>().SetPosition(1,transform.position);
+      
                 break; 
-                case 'X':
-            
-                break;
                 case '-':
-                transform.Rotate(Vector3.back * thetaRotationAngle);
+                    transform.Rotate(Vector3.back * thetaRotationAngle);
                 break;
                 case '+':
-                transform.Rotate(Vector3.forward * thetaRotationAngle);
+                    transform.Rotate(Vector3.back * -thetaRotationAngle);
                 break;
                 case '[':
-                transformInfos.Push(new TransformInfo(){position = transform.position, rotation = transform.rotation});
+                    transformInfos.Push(new TransformData { position = transform.position, rotation = transform.rotation });
                 break;
                 case ']':
                     if (hasLeaves)
                     {
                         Vector3 iP = transform.position;
-                        transform.Translate(new Vector3(0, 0.9f, 0));
+                        transform.Translate(new Vector3(0, 0.9f*branchLengthScalar, 0));
 
                         GameObject leaf = Instantiate(LeafPrefab, GeneratedTree.transform);
 
-                        leaf.name = "leaf: " + i;
+                        leaf.name = "leaf: " + counter2;
+                        counter2 += 1;
                         leaf.GetComponent<LineRenderer>().SetPosition(0, iP);
                         leaf.GetComponent<LineRenderer>().SetPosition(1, transform.position);
                     }
-                TransformInfo ti = transformInfos.Pop();    
-                transform.position = ti.position;
-                transform.rotation = ti.rotation;
-                break;
-                case 'Y':
 
-                break; 
-                default:
-                 Debug.LogError("CHARACTER NOT FOUND"+currentString[i].ToString()); 
-                 break;
-            }
+                    TransformData popedT = transformInfos.Pop();
+                    transform.position = popedT.position;
+                    transform.rotation = popedT.rotation;
+                  
+                break;
+            }//asumption all input strings are vast and we assume that the functionality for a given character c is such that c handles no operation
         }
     }
     
@@ -182,11 +179,70 @@ public class PlantVisualiser : MonoBehaviour
         }
     }
 
+    void UpdateExisitngAngles()
+    {
+        transformInfos.Clear();
+        transform.position = GeneratedTree.transform.position;
+        transform.rotation = startingPos.transform.rotation;
+        int counter = 0;
+
+        for (int i = 0; i < preloadedInstructions.Length; i++)
+        {
+
+            switch (preloadedInstructions[i])
+            {
+                case 'F':
+                    Vector3 initalPosition = transform.position;
+                    transform.Translate(Vector3.up * branchLengthScalar);
+
+                    if (GeneratedTree.transform.childCount > counter)
+                    {
+
+                        GameObject treeSegement = GeneratedTree.transform.GetChild(counter).gameObject;
+                        counter += 1;
+                        treeSegement.GetComponent<LineRenderer>().SetPosition(0, initalPosition);
+                        treeSegement.GetComponent<LineRenderer>().SetPosition(1, transform.position);
+                      //  Debug.Log("getting: " + treeSegement.name);
+                    }
+                    break;
+                case '-':
+                    transform.Rotate(Vector3.back * thetaRotationAngle);
+                    break;
+                case '+':
+                    transform.Rotate(Vector3.back * -thetaRotationAngle);
+                    break;
+                case '[':
+                    transformInfos.Push(new TransformData { position = transform.position, rotation = transform.rotation });
+                    break;
+                case ']':
+                    if (hasLeaves)
+                    {
+                        Vector3 iP = transform.position;
+                        transform.Translate(new Vector3(0, 0.9f, 0));
+
+                        GameObject leaf = GeneratedTree.transform.GetChild(counter).gameObject;
+                        counter += 1;
+                        leaf.name = "leaf: " + i;
+                        leaf.GetComponent<LineRenderer>().SetPosition(0, iP);
+                        leaf.GetComponent<LineRenderer>().SetPosition(1, transform.position);
+                    }
+
+                    TransformData popedT = transformInfos.Pop();
+                    transform.position = popedT.position;
+                    transform.rotation = popedT.rotation;
+
+                    break;
+            }//asumption all input strings are vast and we assume that the functionality for a given character c is such that c handles no operation
+            
+        }
+    }
+
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame();
         currentIteration = maxIterations;
         hasLeaves = false;
         sp.SetOrignalProduction(parcelableRules);
+        branchLengthScalar = 1;
         isStochastic = false;
         CacheGenerationalInstructions();
         Generate();
@@ -223,6 +279,7 @@ public class PlantVisualiser : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
+
 
     public class StochasticProbablity
     {
@@ -281,5 +338,11 @@ public class PlantVisualiser : MonoBehaviour
         }
 
 
+    }
+
+    public class TransformData
+    {
+        public Vector3 position;
+        public Quaternion rotation;
     }
 }

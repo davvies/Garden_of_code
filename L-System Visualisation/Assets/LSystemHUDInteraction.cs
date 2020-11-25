@@ -38,11 +38,12 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     void OnEnable() { 
         StartCoroutine(WaitAFrameToUpdateName());
-        }//plant name is static information, render it when information is parsed
+        }
     
     IEnumerator WaitAFrameToUpdateName() {
         yield return new WaitWhile(() => plantName.text == string.Empty);
         DisplayStats();
+        currentPlant.branchLengthScalar = 1;
         prefabLR.GetComponent<LineRenderer>().startWidth = startLRWidth;
         prefabLR.GetComponent<LineRenderer>().endWidth = startLRWidth;
         prefabLR.GetComponent<LineRenderer>().material = customBlack;
@@ -101,7 +102,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         float updatedSlideTheta = (float)Mathf.Round(thetaSlider.value * 10f) / 10;
         currentPlant.thetaRotationAngle = updatedSlideTheta;
         theta.text = "Theta: "+updatedSlideTheta+ "°";
-        currentPlant.onInstanceGenerateListener = true;
+        currentPlant.updateExisitngAngles = true;
     }
 
     public void OnClickIncreaseBranchThickness() {
@@ -133,7 +134,18 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.isStochastic = true;
         currentPlant.onInstanceRecalcuateTreeStructure = true; 
         currentPlant.onInstanceGenerateListener = true;
-        //dont forget to generate
     }
-    //nts quality seetings set to medium
+
+    public void OnClickIncreaseBranchlength()
+    {
+        if (currentPlant.branchLengthScalar < 3) currentPlant.branchLengthScalar+=1;
+        currentPlant.onInstanceGenerateListener = true;
+    }
+    
+    public void OnClickDecreseBranchlength()
+    {
+        if (currentPlant.branchLengthScalar > 1) currentPlant.branchLengthScalar-=1;
+        currentPlant.onInstanceGenerateListener = true;
+    }
+
 }
