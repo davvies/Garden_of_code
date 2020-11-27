@@ -10,11 +10,11 @@ using UnityEngine;
 public class PlantVisualiser : MonoBehaviour
 {
 
-    [SerializeField] GameObject Branch = default; //prefab object (branch containing line renderer)
+    [SerializeField] GameObject branch = default; //prefab object (branch containing line renderer)
 
-    [SerializeField] GameObject GeneratedTree = default; //"root" of the tree (holding fixed position and rotation data)
+    [SerializeField] GameObject generatedTree = default; //"root" of the tree (holding fixed position and rotation data)
 
-    [SerializeField] GameObject LeafPrefab = default; //prefab object (leaf to create containing line renderer)
+    [SerializeField] GameObject leafPrefab = default; //prefab object (leaf to create containing line renderer)
 
     public char axiom { get; set; } //inital character to begin expotential creation
 
@@ -26,7 +26,7 @@ public class PlantVisualiser : MonoBehaviour
 
     public float thetaRotationAngle { get; set; } //rotation of branches
 
-    Stack<TransformData> transformInfos; //active stack to keep track of position data
+    Stack<TransformData> transformData; //active stack to keep track of position data
 
     string currentString = string.Empty; //data for handling string building of instructions 
 
@@ -52,9 +52,9 @@ public class PlantVisualiser : MonoBehaviour
 
     void Start()
     {
-        transform.position = GeneratedTree.transform.position; //set generation at root
-        startingPos = GeneratedTree.transform; //cache starting position
-        transformInfos = new Stack<TransformData>(); //a stack of transform data
+        transform.position = generatedTree.transform.position; //set generation at root
+        startingPos = generatedTree.transform; //cache starting position
+        transformData = new Stack<TransformData>(); //a stack of transform data
    
         currentIteration = maxIterations; //by default the whole tree is drawn
         branchLengthScalar = 1; //normalised length of tree
@@ -87,14 +87,14 @@ public class PlantVisualiser : MonoBehaviour
     void Generate(){
         int branchCounter = 0; //branch index tracker
         int leafCounter = 0; //leaf index tracker
-        if (GeneratedTree.transform.childCount!=0) ClearTreeAndPosition(); //tree clearing
+        if (generatedTree.transform.childCount!=0) ClearTreeAndPosition(); //tree clearing
         for(int i = 0; i < preloadedInstructions.Length; i++){
             switch(preloadedInstructions[i]){
                 case 'F':
                     Vector3 initalPosition = transform.position; //inital position is cached 
                     transform.Translate(Vector3.up * branchLengthScalar); //position of generation tutle graphic is moved by scalar factor in a forward direction
 
-                    GameObject treeSegement = Instantiate(Branch, GeneratedTree.transform); //a copy of prefab is instantiated
+                    GameObject treeSegement = Instantiate(branch, generatedTree.transform); //a copy of prefab is instantiated
     
                     treeSegement.name = "branch: "+branchCounter; //editor indexing 
                     branchCounter += 1;
@@ -109,7 +109,7 @@ public class PlantVisualiser : MonoBehaviour
                     transform.Rotate(Vector3.back * -thetaRotationAngle); //negative rotation relative to axis
                 break;
                 case '[':
-                    transformInfos.Push(new TransformData { position = transform.position, rotation = transform.rotation }); //position added to stack
+                    transformData.Push(new TransformData { position = transform.position, rotation = transform.rotation }); //position added to stack
                 break;
                 case ']':
                     if (hasLeaves)
@@ -117,7 +117,7 @@ public class PlantVisualiser : MonoBehaviour
                         Vector3 iP = transform.position;
                         transform.Translate(new Vector3(0, 0.9f*branchLengthScalar, 0));
 
-                        GameObject leaf = Instantiate(LeafPrefab, GeneratedTree.transform);
+                        GameObject leaf = Instantiate(leafPrefab, generatedTree.transform);
 
                         leaf.name = "leaf: " + leafCounter;
                         leafCounter += 1;
@@ -125,7 +125,7 @@ public class PlantVisualiser : MonoBehaviour
                         leaf.GetComponent<LineRenderer>().SetPosition(1, transform.position);
                     }
 
-                    TransformData popedT = transformInfos.Pop(); //info is popped of the stack
+                    TransformData popedT = transformData.Pop(); //info is popped of the stack
                     transform.position = popedT.position;
                     transform.rotation = popedT.rotation;
                   
@@ -187,10 +187,10 @@ public class PlantVisualiser : MonoBehaviour
     void UpdateExisitngAngles()
     {
 
-        transformInfos.Clear(); //GC for stack info
+        transformData.Clear(); //GC for stack info
 
         //position is reset
-        transform.position = GeneratedTree.transform.position;
+        transform.position = generatedTree.transform.position;
         transform.rotation = startingPos.transform.rotation;
 
         int counter = 0;
@@ -204,10 +204,10 @@ public class PlantVisualiser : MonoBehaviour
                     Vector3 initalPosition = transform.position;
                     transform.Translate(Vector3.up * branchLengthScalar);
 
-                    if (GeneratedTree.transform.childCount > counter)
+                    if (generatedTree.transform.childCount > counter)
                     {
 
-                        GameObject treeSegement = GeneratedTree.transform.GetChild(counter).gameObject;
+                        GameObject treeSegement = generatedTree.transform.GetChild(counter).gameObject;
                         counter += 1;
                         treeSegement.GetComponent<LineRenderer>().SetPosition(0, initalPosition);
                         treeSegement.GetComponent<LineRenderer>().SetPosition(1, transform.position);
@@ -221,7 +221,7 @@ public class PlantVisualiser : MonoBehaviour
                     transform.Rotate(Vector3.back * -thetaRotationAngle);
                     break;
                 case '[':
-                    transformInfos.Push(new TransformData { position = transform.position, rotation = transform.rotation });
+                    transformData.Push(new TransformData { position = transform.position, rotation = transform.rotation });
                     break;
                 case ']':
                     if (hasLeaves)
@@ -229,14 +229,14 @@ public class PlantVisualiser : MonoBehaviour
                         Vector3 iP = transform.position;
                         transform.Translate(new Vector3(0, 0.9f, 0));
 
-                        GameObject leaf = GeneratedTree.transform.GetChild(counter).gameObject;
+                        GameObject leaf = generatedTree.transform.GetChild(counter).gameObject;
                         counter += 1;
                         leaf.name = "leaf: " + i;
                         leaf.GetComponent<LineRenderer>().SetPosition(0, iP);
                         leaf.GetComponent<LineRenderer>().SetPosition(1, transform.position);
                     }
 
-                    TransformData popedT = transformInfos.Pop();
+                    TransformData popedT = transformData.Pop();
                     transform.position = popedT.position;
                     transform.rotation = popedT.rotation;
 
@@ -274,12 +274,12 @@ public class PlantVisualiser : MonoBehaviour
         parcelableRules.Clear();
         plantName = string.Empty;
         axiom = ' ';
-        transform.position = GeneratedTree.transform.position;
+        transform.position = generatedTree.transform.position;
         transform.rotation = startingPos.transform.rotation;
         maxIterations = 0;
-        if(GeneratedTree.transform.childCount==0) return;
+        if(generatedTree.transform.childCount==0) return;
 
-        foreach(Transform child in GeneratedTree.transform){
+        foreach(Transform child in generatedTree.transform){
             Destroy(child.gameObject);
         }
         
@@ -289,10 +289,10 @@ public class PlantVisualiser : MonoBehaviour
     public void ClearTreeAndPosition(){
         
      
-        transform.position = GeneratedTree.transform.position;
+        transform.position = generatedTree.transform.position;
         transform.rotation = startingPos.transform.rotation;
 
-        foreach(Transform child in GeneratedTree.transform){
+        foreach(Transform child in generatedTree.transform){
             Destroy(child.gameObject);
         }
     }
