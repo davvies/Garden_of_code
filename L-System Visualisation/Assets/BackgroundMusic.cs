@@ -7,14 +7,14 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class BackgroundMusic : MonoBehaviour
 {
-    AudioSource audioPlayer; //we reference the audio player attached
+    AudioSource audioPlayer; //reference the audio player attached
 
     void Start()
     {
         DontDestroyOnLoad(gameObject); //function is used allow for continous music 
         audioPlayer = GetComponent<AudioSource>();
-        audioPlayer.Play(); //we assume the audio player has such a soundtrack attached
+        audioPlayer.Play(); //assume the audio player has such a soundtrack attached
+        QualitySettings.vSyncCount = 0; //stop webgl vsync rendering to affect potential sound
     }
 
-    
 }
