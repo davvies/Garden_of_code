@@ -1,8 +1,4 @@
-# Garden_of_code
-An interactive tool to explore Lindenmayer Systems
+# A-Night-at-Shibuya-Crossing
 
-## FAQ 
-
-### How do I launch the tool? 
-
-> Under the build file, launch 'final_build.exe'.
+## *NOTE*
+### This project only contains the scripts for A.N.A.S.C. For the full source, feel free to message
