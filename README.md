@@ -1,4 +1,4 @@
-# A-Night-at-Shibuya-Crossing
+# Garden of Code
 
 ## *NOTE*
-### This project only contains the scripts for A.N.A.S.C. For the full source, feel free to message
+### This project only contains the scripts for Garden of Code. For the full source, feel free to message
