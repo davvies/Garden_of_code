@@ -36,6 +36,10 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     const float startLRWidth = 0.3f; //default line width of turtle graphics
 
+    const float maxBranchThickness = 0.9f; 
+    
+    const float branchThicknessScalar = 0.3f;
+    
     void Start() => DisplayStats(); //at default stats should show
 
     /* *NOTE* 
@@ -122,19 +126,22 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     /// <summary>methods <c>OnClick{Increase/Decrease}BranchThickness</c> handles functionality of updating thickness</summary>
     public void OnClickIncreaseBranchThickness() {
-        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) >= 0.9f) return;
+        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) >= maxBranchThickness) 
+            return;
        
         //unison width update
-        prefabLR.GetComponent<LineRenderer>().startWidth += 0.3f; 
-        prefabLR.GetComponent<LineRenderer>().endWidth += 0.3f;
+        prefabLR.GetComponent<LineRenderer>().startWidth += branchThicknessScalar; 
+        prefabLR.GetComponent<LineRenderer>().endWidth += branchThicknessScalar;
         currentPlant.onInstanceGenerateListener = true; //regeneration is needed (prefabs need to be updated)
     }
 
     public void OnClickDecreaseBranchThickness()
     {
-        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) <= 0.3f) return;
-        prefabLR.GetComponent<LineRenderer>().startWidth -= 0.3f;
-        prefabLR.GetComponent<LineRenderer>().endWidth -= 0.3f;
+        if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) <= branchThicknessScalar) 
+            return;
+            
+        prefabLR.GetComponent<LineRenderer>().startWidth -= branchThicknessScalar;
+        prefabLR.GetComponent<LineRenderer>().endWidth -= branchThicknessScalar;
         currentPlant.onInstanceGenerateListener = true;
     }
 
@@ -157,13 +164,17 @@ public class LSystemHUDInteraction : MonoBehaviour
     /// <summary>methods <c>OnClick{Increase/Decrease}BranchLength</c> handles functionality of updating length of branches</summary>
     public void OnClickIncreaseBranchlength()
     {
-        if (currentPlant.branchLengthScalar < 3) currentPlant.branchLengthScalar+=1; //upper bound check
+        if (currentPlant.branchLengthScalar < 3) 
+            currentPlant.branchLengthScalar+=1; //upper bound check
+            
         currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
     }
     
     public void OnClickDecreseBranchlength()
     {
-        if (currentPlant.branchLengthScalar > 1) currentPlant.branchLengthScalar-=1; //lower bound check
+        if (currentPlant.branchLengthScalar > 1) 
+            currentPlant.branchLengthScalar-=1; //lower bound check
+            
         currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
     }
 
