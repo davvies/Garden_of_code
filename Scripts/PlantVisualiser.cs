@@ -48,6 +48,10 @@ public class PlantVisualiser : MonoBehaviour
     public string preloadedInstructions; //instructions used for pre-calculation of tree generation
 
     const float leafExpansionLen = 0.9f; //size of leaves
+    
+    const int branchLenNormalised = 1; //normalised length of tree
+    
+    const float rulesetProbability = 0.5f; //stochastic rule probablity (must be between 0-1)
 
     public bool updateExisitngAngles { get; set; } //external HUD setting for generation of existing angles
 
@@ -58,9 +62,10 @@ public class PlantVisualiser : MonoBehaviour
         transformData = new Stack<TransformData>(); //a stack of transform data
    
         currentIteration = maxIterations; //by default the whole tree is drawn
-        branchLengthScalar = 1; //normalised length of tree
+        branchLengthScalar = branchLenNormalised;
         updateExisitngAngles = false; 
         sp = new StochasticProbablity(parcelableRules);
+        
         hasLeaves = false;
         CacheGenerationalInstructions(); //within the first frame instructions a cached to allow for smooth generation of update
         onInstanceGenerateListener=true; //create an instance of genertion 
@@ -77,9 +82,9 @@ public class PlantVisualiser : MonoBehaviour
             Generate(); //call to delete all objects and reset positions
             onInstanceGenerateListener = false; //a trigger to continually generation
         }
-        if (updateExisitngAngles) //recalculate exisiting angles and positions of generated tree
+        if (updateExisitngAngles) //recalculate existing angles and positions of generated tree
         {
-            UpdateExisitngAngles(); //call to update all angles and positions 
+            UpdateExistingAngles(); //call to update all angles and positions 
             updateExisitngAngles = false; //a trigger to stop continual adjustment
         }
     }
@@ -88,7 +93,10 @@ public class PlantVisualiser : MonoBehaviour
     void Generate(){
         int branchCounter = 0; //branch index tracker
         int leafCounter = 0; //leaf index tracker
-        if (generatedTree.transform.childCount!=0) ClearTreeAndPosition(); //tree clearing
+        
+        if (generatedTree.transform.childCount!=0) 
+            ClearTreeAndPosition(); //tree clearing
+            
         for(int i = 0; i < preloadedInstructions.Length; i++){
             switch(preloadedInstructions[i]){
                 case 'F':
@@ -140,15 +148,9 @@ public class PlantVisualiser : MonoBehaviour
     {
         float rNum = Random.Range(0f, 1f); //a number is generated between 0-1 
         Dictionary<char, string> instanceOfRuleset; //temp ruleset used for character parsing  
-        if (rNum > 0.5f) //a 50-50 probablity is used on each character this creates a vast amount of different generations
-        {
-            instanceOfRuleset = sp.GetOrignalRuleSet; 
-                
-        } else {
-
-            instanceOfRuleset = sp.GetInvertedOperatorRuleSet; //if the number is lower than 0.5 the inverted ruleset is used 
-
-        }
+        
+        instanceOfRuleset = rNum > rulesetProbability ? sp.GetOrignalRuleSet : sp.GetInvertedOperatorRuleSet;
+        
         //with such method design it would be trivial to add more probablity
         return instanceOfRuleset.ContainsKey(c) ? instanceOfRuleset[c] : c.ToString(); //return matching instructions for that character
     }
@@ -178,14 +180,15 @@ public class PlantVisualiser : MonoBehaviour
         }
 
         preloadedInstructions = currentString; //instructions are updated
+        
         if (isStochastic)
-        {
+        
             isStochastic = false; //to stop continually generation this value is stopped until clicked from the HUD script
-        }
+        
     }
 
-    /// <summary>method <c>UpdateExisitingAngles</c> All current branches and leaves are updated to match a potential angle update  </summary>
-    void UpdateExisitngAngles()
+    /// <summary> method <c>UpdateExisitingAngles</c> All current branches and leaves are updated to match a potential angle update  </summary>
+    void UpdateExistingAngles()
     {
 
         transformData.Clear(); //GC for stack info
@@ -212,7 +215,6 @@ public class PlantVisualiser : MonoBehaviour
                         counter += 1;
                         treeSegement.GetComponent<LineRenderer>().SetPosition(0, initalPosition);
                         treeSegement.GetComponent<LineRenderer>().SetPosition(1, transform.position);
-                      //  Debug.Log("getting: " + treeSegement.name);
                     }
                     break;
                 case '-':
@@ -228,7 +230,7 @@ public class PlantVisualiser : MonoBehaviour
                     if (hasLeaves)
                     {
                         Vector3 iP = transform.position;
-                        transform.Translate(new Vector3(0, 0.9f, 0));
+                        transform.Translate(new Vector3(0, leafExpansionLen, 0));
 
                         GameObject leaf = generatedTree.transform.GetChild(counter).gameObject;
                         counter += 1;
@@ -247,7 +249,7 @@ public class PlantVisualiser : MonoBehaviour
         }
     } //This method could be handled via bools within generate but for code readablity purposes it's intuative to seperate responsiblity
 
-    /// <summary>Async Method <c>UpdateExisitingAngles</c> To account for thread execution, inital generation is multi-threaded  </summary>
+    /// <summary> async method <c>UpdateExisitingAngles</c> To account for thread execution, inital generation is multi-threaded  </summary>
     IEnumerator MultithreadDelayGen(){
         yield return new WaitForEndOfFrame(); //ensure all instructions are loaded by waiting till the end of the frame 
         
@@ -263,10 +265,7 @@ public class PlantVisualiser : MonoBehaviour
         Generate();
     }
 
-    void OnEnable()
-    {
-        StartCoroutine(MultithreadDelayGen());  
-    }
+    void OnEnable() => StartCoroutine(MultithreadDelayGen());  
 
     /// <summary>method <c>ClearAll</c> Completely remove and clear all objects and data (used externally)  </summary>
     public void ClearAll(){ //garbage collection
@@ -361,7 +360,7 @@ public class PlantVisualiser : MonoBehaviour
 
     }
 
-    /// <summary>inner class <c>TransformData</c> Stoage for the bare-minimum needed for transform stack (i.e. not needing to saved scale data etc.)  </summary>
+    /// <summary>inner class <c>TransformData</c> Storage for the bare-minimum needed for transform stack (i.e. not needing to saved scale data etc.)  </summary>
     public class TransformData
     {
         public Vector3 position;
