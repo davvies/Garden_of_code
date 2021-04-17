@@ -16,6 +16,10 @@ public class InitGivenPlant : MonoBehaviour
 
     [SerializeField] PlantVisualiser plant; //Reference to pass parced data
 
+    const int ruleIndex = 1; //The standard index of any rule
+    
+    const int maxRuleIndexLen = 4; //Typical end of rule
+    
     /// <summary>method <c>OnClickVisualiser</c> Allows params to passed to a visualiser.</summary>
     public void OnClickVisualiser() {
 
@@ -30,7 +34,7 @@ public class InitGivenPlant : MonoBehaviour
             if (plantProperty.CompareTag("Rule")) //this design allows any amount of rules to be added, assuming the rules are marked as such with a tag
             {
                 string rule = plantProperty.GetComponent<TextMeshProUGUI>().text; //taking a reference to the full GUI display of the rule..
-                plant.parcelableRules.Add(rule[1], rule.Substring(4).Replace(")", "")); //we pass the character for that rule, along with the rest of the rule
+                plant.parcelableRules.Add(rule[ruleIndex], rule.Substring(maxIndexLen).Replace(")", "")); //we pass the character for that rule, along with the rest of the rule
             }
         }
 
