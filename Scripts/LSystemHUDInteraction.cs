@@ -40,6 +40,10 @@ public class LSystemHUDInteraction : MonoBehaviour
     
     const float branchThicknessScalar = 0.3f;
     
+    const float upperThicknessBound = 3f;
+    
+    const float lowerThicknessBound = 1f;
+    
     void Start() => DisplayStats(); //at default stats should show
 
     /* *NOTE* 
@@ -164,7 +168,7 @@ public class LSystemHUDInteraction : MonoBehaviour
     /// <summary>methods <c>OnClick{Increase/Decrease}BranchLength</c> handles functionality of updating length of branches</summary>
     public void OnClickIncreaseBranchlength()
     {
-        if (currentPlant.branchLengthScalar < 3) 
+        if (currentPlant.branchLengthScalar < upperThicknessBound) 
             currentPlant.branchLengthScalar+=1; //upper bound check
             
         currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
@@ -172,7 +176,7 @@ public class LSystemHUDInteraction : MonoBehaviour
     
     public void OnClickDecreseBranchlength()
     {
-        if (currentPlant.branchLengthScalar > 1) 
+        if (currentPlant.branchLengthScalar > lowerThicknessBound) 
             currentPlant.branchLengthScalar-=1; //lower bound check
             
         currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
