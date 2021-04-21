@@ -53,7 +53,7 @@ public class PlantVisualiser : MonoBehaviour
     
     const float rulesetProbability = 0.5f; //stochastic rule probablity (must be between 0-1)
 
-    public bool updateExisitngAngles { get; set; } //external HUD setting for generation of existing angles
+    public bool updateExisitingAngles { get; set; } //external HUD setting for generation of existing angles
 
     void Start()
     {
@@ -82,10 +82,10 @@ public class PlantVisualiser : MonoBehaviour
             Generate(); //call to delete all objects and reset positions
             onInstanceGenerateListener = false; //a trigger to continually generation
         }
-        if (updateExisitngAngles) //recalculate existing angles and positions of generated tree
+        if (updateExisitingAngles) //recalculate existing angles and positions of generated tree
         {
             UpdateExistingAngles(); //call to update all angles and positions 
-            updateExisitngAngles = false; //a trigger to stop continual adjustment
+            updateExisitingAngles = false; //a trigger to stop continual adjustment
         }
     }
 
