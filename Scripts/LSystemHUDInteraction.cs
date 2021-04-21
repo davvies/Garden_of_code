@@ -36,20 +36,20 @@ public class LSystemHUDInteraction : MonoBehaviour
 
     const float startLRWidth = 0.3f; //default line width of turtle graphics
 
-    const float maxBranchThickness = 0.9f; 
+    const float maxBranchThickness = 0.9f; //max branch thickness
     
-    const float branchThicknessScalar = 0.3f;
+    const float branchThicknessScalar = 0.3f; //scale factor for branches
     
-    const float upperThicknessBound = 3f;
+    const float upperThicknessBound = 3f; //upper thickness for leafs
     
-    const float lowerThicknessBound = 1f;
+    const float lowerThicknessBound = 1f; //lower thickness for leafs
     
-    void Start() => DisplayStats(); //at default stats should show
+    void Start() => DisplayStats(); //at start stats should show
 
     /* *NOTE* 
      * Unity has unpredictable threads of execution, the order of which start updates run is decided at runtime by the complier 
      * to account for the edge case of a config loading before the params are sent, when the plant is enabled execution of growth
-     * is halted till the end of the frame, this ensures that the plant data is never not loaded before the visuliser exectures its
+     * is halted till the end of the frame, this ensures that the plant data is never not loaded before the visuliser executes its
      * 'Start()' function
     */
     void OnEnable() {
@@ -102,7 +102,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         }
     }
 
-    /// <summary>methods <c>OnClickChangeTreeTo{colour}</c> functionality for colour textures being clicked 
+    /// <summary>method <c>OnClickChangeTreeTo{colour}</c> functionality for colour textures being clicked 
     /// since these methods are not live interaction and materials are cached optimisation are not needed (checking if material is already applied)</summary>
     public void OnClickChangeTreeToBlack(){
         prefabLR.GetComponent<LineRenderer>().material = customBlack; 
@@ -128,7 +128,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.updateExisitngAngles = true; //regeneration or recalculation of string not needed, only angles and postions need changing
     }
 
-    /// <summary>methods <c>OnClick{Increase/Decrease}BranchThickness</c> handles functionality of updating thickness</summary>
+    /// <summary>method <c>OnClickIncreaseBranchThickness</c> handles functionality of updating thickness</summary>
     public void OnClickIncreaseBranchThickness() {
         if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) >= maxBranchThickness) 
             return;
@@ -139,6 +139,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.onInstanceGenerateListener = true; //regeneration is needed (prefabs need to be updated)
     }
 
+    /// <summary>method <c>OnClickDecreaseBranchThickness</c> handles functionality of updating thickness</summary>
     public void OnClickDecreaseBranchThickness()
     {
         if (Mathf.Abs(prefabLR.GetComponent<LineRenderer>().startWidth) <= branchThicknessScalar) 
@@ -149,7 +150,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.onInstanceGenerateListener = true;
     }
 
-    /// <summary>methods <c>OnClickUncheckLeaves</c> handles functionality for complete clicking of leaves</summary>
+    /// <summary>method <c>OnClickUncheckLeaves</c> handles functionality for complete clicking of leaves</summary>
     public void OnClickCheckUncheckLeaves()
     {
         currentPlant.hasLeaves = !currentPlant.hasLeaves; //simply boolean functionality does not require its on method, a state switch is used
@@ -157,7 +158,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.onInstanceGenerateListener = true; //tree needs to be re-generated
     }
 
-    /// <summary>methods <c>OnClickMakePlantStochastic</c> handles trigger for applying randomess to ruleset</summary>
+    /// <summary>method <c>OnClickMakePlantStochastic</c> handles trigger for applying randomess to ruleset</summary>
     public void OnClickMakePlantStochastic()
     {
         currentPlant.isStochastic = true; //trigger for updating random factor
@@ -165,7 +166,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         currentPlant.onInstanceGenerateListener = true; //regen tree from this structure
     }
 
-    /// <summary>methods <c>OnClick{Increase/Decrease}BranchLength</c> handles functionality of updating length of branches</summary>
+    /// <summary>method <c>OnClickIncreaseBranchlength</c> handles functionality of updating length of branches</summary>
     public void OnClickIncreaseBranchlength()
     {
         if (currentPlant.branchLengthScalar < upperThicknessBound) 
@@ -179,7 +180,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         if (currentPlant.branchLengthScalar > lowerThicknessBound) 
             currentPlant.branchLengthScalar-=1; //lower bound check
             
-        currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
+        currentPlant.onInstanceGenerateListener = true; //rules are static so only a generation is needed
     }
 
 }
