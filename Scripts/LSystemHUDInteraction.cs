@@ -172,7 +172,7 @@ public class LSystemHUDInteraction : MonoBehaviour
         if (currentPlant.branchLengthScalar < upperThicknessBound) 
             currentPlant.branchLengthScalar+=1; //upper bound check
             
-        currentPlant.onInstanceGenerateListener = true; //rules are unchaning so only a generation is needed
+        currentPlant.onInstanceGenerateListener = true; //rules are static so one generation is needed
     }
     
     public void OnClickDecreseBranchlength()
