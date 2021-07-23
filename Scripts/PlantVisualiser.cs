@@ -80,7 +80,7 @@ public class PlantVisualiser : MonoBehaviour
         }
         if(onInstanceGenerateListener){ //generate a visual tree 
             Generate(); //call to delete all objects and reset positions
-            onInstanceGenerateListener = false; //a trigger to continually generation
+            onInstanceGenerateListener = false; //a trigger to stop continual generation
         }
         if (updateExisitingAngles) //recalculate existing angles and positions of generated tree
         {
